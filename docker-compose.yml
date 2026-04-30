@@ -4,7 +4,7 @@ services:
     container_name: ip_nginx
     restart: always
     ports:
-      - "8080:80"
+      - "80:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - images_data:/var/www/images:ro

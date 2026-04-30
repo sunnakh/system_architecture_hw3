@@ -17,9 +17,8 @@ from . import image_pb2, db, grpc_client
 from .idempotency import idempotent
 from .ws import router as ws_router, broadcast_view
 
-IMAGES_DIR = Path(os.environ.get("IMAGES_DIR", "./images"))
-IMAGES_DIR.mkdir(parents=True, exist_ok=True)
-PUBLIC = os.environ.get("PUBLIC_BASE_URL", "http://64.226.92.196:8000")
+IMAGES_DIR = Path(os.environ["IMAGES_DIR"])
+PUBLIC = os.environ["PUBLIC_BASE_URL"]
 
 MAX_BYTES = 10 * 1024 * 1024  # 10 MB
 
@@ -40,10 +39,7 @@ app.include_router(ws_router)
 @idempotent
 async def upload(
     request: Request,
-    file: UploadFile = File(
-        ...,
-        description="Image file, max 10 MB"
-    ),
+    file: UploadFile = File(..., description="Image file, max 10 MB"),
     x_request_id: str = Header(
         ...,
         alias="X-Request-ID",
@@ -61,10 +57,7 @@ async def upload(
         "image/png",
         "image/webp",
     ):
-        raise HTTPException(
-            415,
-            "Only JPEG, PNG, and WebP are accepted"
-        )
+        raise HTTPException(415, "Only JPEG, PNG, and WebP are accepted")
 
     # 2. Persist original bytes
     uid = uuid.uuid4().hex
@@ -77,23 +70,11 @@ async def upload(
     thumbnail = IMAGES_DIR / f"{uid}_t.jpg"
     watermark = IMAGES_DIR / f"{uid}_w.jpg"
 
-    grpc_client.process(
-        str(orig_path),
-        str(compressed),
-        image_pb2.COMPRESS
-    )
+    grpc_client.process(str(orig_path), str(compressed), image_pb2.COMPRESS)
 
-    grpc_client.process(
-        str(compressed),
-        str(thumbnail),
-        image_pb2.THUMBNAIL
-    )
+    grpc_client.process(str(compressed), str(thumbnail), image_pb2.THUMBNAIL)
 
-    grpc_client.process(
-        str(compressed),
-        str(watermark),
-        image_pb2.WATERMARK
-    )
+    grpc_client.process(str(compressed), str(watermark), image_pb2.WATERMARK)
 
     orig_path.unlink()  # drop uncompressed original
 
