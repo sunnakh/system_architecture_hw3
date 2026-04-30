@@ -1,0 +1,79 @@
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: ip_nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - images_data:/var/www/images:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - appnet
+
+  frontend:
+    build: ./frontend
+    container_name: ip_frontend
+    restart: always
+    networks:
+      - appnet
+
+  backend:
+    build: ./backend
+    container_name: ip_backend
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/pastebin
+      REDIS_URL: redis://redis:6379/0
+      IMAGE_SERVICE_ADDR: image_service:50051
+      IMAGES_DIR: /images
+      PUBLIC_BASE_URL: http://64.226.92.196
+    volumes:
+      - images_data:/images
+    depends_on:
+      - postgres
+      - redis
+      - image_service
+    networks:
+      - appnet
+
+  image_service:
+    build: ./image_service
+    container_name: ip_image
+    restart: always
+    volumes:
+      - images_data:/images
+    networks:
+      - appnet
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: ip_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: pastebin
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - appnet
+
+  redis:
+    image: redis:7-alpine
+    container_name: ip_redis
+    restart: always
+    networks:
+      - appnet
+
+volumes:
+  pgdata:
+  images_data:
+
+networks:
+  appnet:
+    driver: bridge
