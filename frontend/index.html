@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Image Pastebin</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <h1>Image Pastebin</h1>
+  </header>
+
+  <main>
+    <form id="uploadForm">
+      <label for="file">Pick an image (max 10 MB):</label>
+
+      <input
+        type="file"
+        id="file"
+        name="file"
+        accept="image/png, image/jpeg, image/webp"
+        required
+      >
+
+      <button type="submit">Upload</button>
+    </form>
+
+    <div id="result" hidden>
+      <p>Your short URL:</p>
+      <a id="shortLink" href="#" target="_blank"></a>
+      <img id="preview" alt="thumbnail">
+    </div>
+
+    <p id="error" class="err" hidden></p>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
