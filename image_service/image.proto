@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package imagepb;
+
+service ImageService {
+  rpc ProcessImage(ProcessRequest) returns (ProcessResponse);
+}
+
+enum Operation {
+  OPERATION_UNSPECIFIED = 0;
+  COMPRESS = 1;   // lossy recompression (JPEG q=70)
+  THUMBNAIL = 2;  // resize longest side to 256px
+  WATERMARK = 3;  // stamp "Image Pastebin" bottom-right
+}
+
+message ProcessRequest {
+  string input_path = 1;   // abs path on shared volume
+  string output_path = 2;  // abs path on shared volume
+  Operation operation = 3;
+}
+
+message ProcessResponse {
+  string output_path = 1;
+  int32 width = 2;
+  int32 height = 3;
+  int64 size_bytes = 4;
+}
